@@ -3,16 +3,16 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
-use App\Models\ModelUser;
+use App\Models\ModelDonasi;
 use CodeIgniter\API\ResponseTrait;
 
-class User extends BaseController
+class Donasi extends BaseController
 {
     use ResponseTrait;
     public function index()
     {
-        $modelUser = new ModelUser();
-        $data = $modelUser->findAll();
+        $modelDns = new ModelDonasi();
+        $data = $modelDns->findAll();
         $response = [
             'status' => 200,
             'error' => "false",
@@ -25,8 +25,8 @@ class User extends BaseController
 
     public function show($cari = null)
     {
-        $modelUser = new ModelUser();
-        $data = $modelUser->orLike('userid', $cari)->orLike('username', $cari)->get()->getResult();
+        $modelDns = new ModelDonasi();
+        $data = $modelDns->orLike('iddonasi', $cari)->orLike('namadonasi', $cari)->get()->getResult();
         if (count($data) > 1) {
             $response = [
                 'status' => 200,
@@ -52,19 +52,20 @@ class User extends BaseController
 
     public function create()
     {
-        $modelUser = new ModelUser();
-        $noid = $this->request->getPost("userid");
-        $nama = $this->request->getPost("username");
-        $passuser = $this->request->getPost("password");
-        $emailuser = $this->request->getPost("email");
-        $usertgllahir = $this->request->getPost("tgllahir");
+        $modelDns = new ModelDonasi();
+        $noid = $this->request->getPost("iddonasi");
+        $nama = $this->request->getPost("namadonasi");
+        $jenis = $this->request->getPost("jenisdonasi");
+        $jumlah = $this->request->getPost("jumlahkumpul");
+        $jumlahtarget = $this->request->getPost("targetdonasi");
+        $tgldonasi = $this->request->getPost("tglakhir");
 
         $validation = \Config\Services::validation();
 
         $valid = $this->validate([
-            'iduser' => [
-                'rules' => 'is_unique[user.userid]',
-                'label' => 'Nomor ID User',
+            'iddonasi' => [
+                'rules' => 'is_unique[donasi.iddonasi]',
+                'label' => 'Nomor ID Donasi',
                 'error' => [
                     'is_unique' => "{field} sudah ada"
                 ]
@@ -75,17 +76,18 @@ class User extends BaseController
             $response = [
                 'status' => 404,
                 'error' => true,
-                'message' => $validation->getError("userid"),
+                'message' => $validation->getError("iddonasi"),
             ];
 
             return $this->respond($response, 404);
         } else {
-            $modelUser->insert([
-                'userid' => $noid,
-                'username' => $nama,
-                'password' => $passuser,
-                'email' => $emailuser,
-                'tgllahir' => $usertgllahir,
+            $modelDns->insert([
+                'iddonasi' => $noid,
+                'namadonasi' => $nama,
+                'jenisdonasi' => $jenis,
+                'jumlahkumpul' => $jumlah,
+                'targetdonasi' => $jumlahtarget,
+                'tglakhir' => $tgldonasi,
             ]);
 
             $response = [
@@ -98,36 +100,35 @@ class User extends BaseController
         }
     }
 
-    public function update($userid = null)
+    public function update($donasiid = null)
     {
-        $model = new ModelUser();
+        $model = new ModelDonasi();
         $data = [
-            'username' => $this->request->getVar("username"),
-            'password' => $this->request->getVar("password"),
-            'email' => $this->request->getVar("email"),
-            'tgllahir' => $this->request->getVar("tgllahiir"),
+            'namadonasi' => $this->request->getVar("namadonasi"),
+            'jenisdonasi' => $this->request->getVar("jenisdonasi"),
+            'tglakhir' => $this->request->getVar("tglakhir"),
         ];
         $data = $this->request->getRawInput();
-        $model->update($userid, $data);
+        $model->update($donasiid, $data);
         $response = [
             'status' => 200,
             'error' => null,
-            'message' => "Data Anda dengan ID $userid berhasil dibaharukan"
+            'message' => "Data Anda dengan ID $donasiid berhasil diperbaharui"
         ];
         return $this->respond($response);
     }
 
-    public function delete($userid = null)
+    public function delete($donasiid = null)
     {
-        $modelUser = new ModelUser();
+        $modelDns = new ModelDonasi();
 
-        $cekData = $modelUser->find($userid);
+        $cekData = $modelDns->find($donasiid);
         if ($cekData) {
-            $modelUser->delete($userid);
+            $modelDns->delete($donasiid);
             $response = [
                 'status' => 200,
                 'error' => null,
-                'message' => "Selamat data sudah berhasil dihapus"
+                'message' => "Selamat data sudah berhasil dihapus "
             ];
             return $this->respondDeleted($response);
         } else {
