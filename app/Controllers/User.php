@@ -58,6 +58,7 @@ class User extends BaseController
         $passuser = $this->request->getPost("password");
         $emailuser = $this->request->getPost("email");
         $usertgllahir = $this->request->getPost("tgllahir");
+        $noTelp = $this->request->getPost("nohp");
 
         $validation = \Config\Services::validation();
 
@@ -86,6 +87,7 @@ class User extends BaseController
                 'password' => $passuser,
                 'email' => $emailuser,
                 'tgllahir' => $usertgllahir,
+                'nohp' => $noTelp
             ]);
 
             $response = [
@@ -105,7 +107,8 @@ class User extends BaseController
             'username' => $this->request->getVar("username"),
             'password' => $this->request->getVar("password"),
             'email' => $this->request->getVar("email"),
-            'tgllahir' => $this->request->getVar("tgllahiir"),
+            'tgllahir' => $this->request->getVar("tgllahir"),
+            'nohp' => $this->request->getVar("nohp"),
         ];
         $data = $this->request->getRawInput();
         $model->update($userid, $data);
@@ -132,6 +135,39 @@ class User extends BaseController
             return $this->respondDeleted($response);
         } else {
             return $this->failNotFound('Data tidak ditemukan kembali');
+        }
+    }
+    public function login()
+    {
+        $session = session();
+        $modelUser = new ModelUser();
+        $nama = $this->request->getVar('username');
+        $passuser = $this->request->getVar('password');
+        $data = $modelUser->where('username', $nama)->first();
+        if ($data) {
+            $pass = $data['password'];
+            $verify_pass = password_verify($passuser, $pass);
+            if ($passuser == $pass) {
+                $ses_data = [
+                    'userid' => $data['userid'],
+                    'username' => $data['username'],
+                    'password' => $data['password'],
+                    'email' => $data['email'],
+                    'tgllahir' => $data['tgllahir'],
+                    'nohp' => $data['nohp']
+
+                ];
+                $session->set($ses_data);
+                $response = [
+                    'status' => 200,
+                    'error' => "false",
+                    'message' => 'Login Success',
+                    'data' => $ses_data,
+                ];
+                return $this->respond($response, 200);
+            } else {
+                return $this->failNotFound('maaf data ' . $data["password"] . ' tidak ditemukan');
+            }
         }
     }
 }
